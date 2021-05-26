@@ -4,6 +4,7 @@
     "slug": "poc-video",
     "version": "1.0.0",
     "orientation": "portrait",
+    "entryPoint": "./src/App.tsx",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
@@ -26,7 +27,12 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "build": {
+        "babel": {
+          "include": ["@codler/react-native-keyboard-aware-scroll-view"]
+        }
+      }
     }
   }
 }
