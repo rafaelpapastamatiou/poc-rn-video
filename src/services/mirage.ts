@@ -1,4 +1,4 @@
-import { createServer, Model, Response, hasMany, belongsTo, ActiveModelSerializer, Serializer } from 'miragejs'
+import { createServer, Model, Response, hasMany, ActiveModelSerializer } from 'miragejs'
 import { BelongsTo, HasMany, ModelInstance } from 'miragejs/-types'
 import { SerializerInterface } from 'miragejs/serializer'
 
@@ -12,12 +12,12 @@ type User = ModelInstance & {
 type Video = ModelInstance & {
   url: string;
   title: string;
-  playlist: BelongsTo<'playlist'>;
 }
 
 type Playlist = ModelInstance & {
   name: string;
-  videos?: HasMany<'videos'>
+  videos?: HasMany<'video'>;
+  videoIds?: string[];
 }
 
 type VideoFeedback = ModelInstance & {
@@ -28,33 +28,23 @@ type VideoFeedback = ModelInstance & {
 const mockModels = {
   user: Model.extend<Partial<User>>({}),
   playlist: Model.extend<Partial<Playlist>>({
-    videos: hasMany()
+    videos: hasMany('video')
   }),
-  video: Model.extend<Partial<Video>>({
-    playlist: belongsTo()
-  }),
+  video: Model.extend<Partial<Video>>({}),
   videoFeedback: Model.extend<Partial<VideoFeedback>>({}),
 } 
 
 const mockFactories = {
 }
 
-const ApplicationSerializer: SerializerInterface = ActiveModelSerializer.extend({
-  root: false,
-  embed: false
-})
-
 export function makeServer() {
   const server = createServer<typeof mockModels, typeof mockFactories>({
     serializers: {
-      application: ApplicationSerializer,
-      playlist: ApplicationSerializer.extend({
+      application: ActiveModelSerializer,
+      playlist: ActiveModelSerializer.extend({
         embed: true,
         include: ['videos'],
       }),
-      video: ApplicationSerializer.extend({
-        embed: false,
-      })
     },
     models: mockModels,
     seeds(server) {
@@ -123,39 +113,29 @@ export function makeServer() {
 
       this.namespace = '/api'
 
-      this.post('/signin',(schema, request) => {
-        try {
-          const body = JSON.parse(request.requestBody)
+      this.post('/signin', function(schema, request){
+        const body = JSON.parse(request.requestBody)
 
-          const { email, password } = body
-  
-          const user = schema.findBy("user", { email, password })
-  
-          if(!user){
-            return new Response(401, {}, "Invalid credentials.")
-          }
-  
-          const { password: passwordRemoved, ...userResponse } = user
-  
-          return new Response(200, {}, { user: userResponse, token: "token-test" })
+        const { email, password } = body
+
+        const user = schema.findBy("user", { email, password })
+
+        if(!user){
+          return new Response(401, {}, "Invalid credentials.")
         }
-        catch(err){
-          console.log(err)
-          return new Response(500, {}, '(Mirage) Internal Server Error')
-        }
+
+        const userSerialized = this.serialize(user)
+
+        const { password: passwordRemoved, ...userResponse } = userSerialized
+
+        return new Response(200, {}, { user: userResponse, token: "token-test" })
       })
 
       this.get('/playlists', function(schema){
-        try {
-          const playlists = this.serialize(schema.all('playlist')).playlists
+        const playlists = this.serialize(schema.all('playlist')).playlists || []
 
-          return new Response(200, {}, playlists)
-        }
-        catch(err){
-          console.log(err)
-          return new Response(500, {}, '(Mirage) Internal Server Error')
-        }
-      })
+        return new Response(200, {}, playlists)
+      })      
     }
   })
 

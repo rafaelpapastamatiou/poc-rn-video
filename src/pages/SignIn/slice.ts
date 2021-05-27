@@ -57,7 +57,6 @@ export const authSlice = createSlice({
     builder.addCase(
       signIn.pending, 
       (state) => {
-        state.isFetching = true;
         state.isError = false;
         state.error = '';
       }

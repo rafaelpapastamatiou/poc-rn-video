@@ -23,7 +23,7 @@ const signInFormSchema = yup.object().shape({
 export function SignIn() {
   const dispatch = useAppDispatch()
 
-  const { control, handleSubmit, formState, setFocus } = useForm({
+  const { control, handleSubmit, formState, setFocus, reset } = useForm({
     resolver: yupResolver(signInFormSchema)
   })
 
@@ -32,6 +32,7 @@ export function SignIn() {
   const handleSignIn = useCallback<SubmitHandler<SignInFormData>>(
     async ({ email, password }) => {
       await dispatch(signIn({ email, password }))
+      reset()
     }, 
     [dispatch]
   )
@@ -76,7 +77,7 @@ export function SignIn() {
           mt='8' 
           variant='solid' 
           onPress={handleSubmit(handleSignIn)}
-          isLoading={isSubmitting}
+          //isLoading={isSubmitting}
         >
           <Text>
             ENTRAR

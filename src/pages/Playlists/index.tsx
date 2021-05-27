@@ -21,7 +21,6 @@ export function Playlist() {
   } , [dispatch])
 
   const handleOpenVideo = useCallback((video: VideoType) => {
-    console.log(navigation)
     navigation.navigate('Player', { id: video.id, title: video.title, url: video.url })
   }, [navigation])
 
@@ -32,7 +31,7 @@ export function Playlist() {
         <Spinner />
       )
       : (
-        <Accordion index={[0]} flex={1} width='100%'>
+        <Accordion index={[0]} flex={1} width='100%' borderRadius='0'>
           {playlists.map((playlist) => (
             <Accordion.Item key={playlist.id}>
               <Accordion.Summary>
@@ -40,11 +39,25 @@ export function Playlist() {
               </Accordion.Summary>
               <Accordion.Details>
                 {playlist.videos.length > 0 && (
-                  <List border='none'>
+                  <List border='none' width='100%'>
                     {playlist.videos.map(video => (
-                      <TouchableNativeFeedback key={video.id} onPress={() => handleOpenVideo(video)}>
-                        <List.Item>
-                          <List.Icon as={<Icon as={<Feather name="play-circle" />} />} size={2} color='brand.900'/>
+                      <TouchableNativeFeedback 
+                        key={video.id} 
+                        onPress={() => handleOpenVideo(video)} 
+                        style={{ width: '100%' }}
+                      >
+                        <List.Item 
+                          _hover={{
+                            backgroundColor: 'trueGray.800',
+                            cursor: 'pointer'
+                          }}
+                          width='100%'
+                        >
+                          <List.Icon 
+                            as={ <Icon as={<Feather name="play-circle" />} />} 
+                            size={2} 
+                            color='brand.900'
+                          />
                           {video.title}
                         </List.Item>
                       </TouchableNativeFeedback>
