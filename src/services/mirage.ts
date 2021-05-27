@@ -1,5 +1,6 @@
-import { createServer, ActiveModelSerializer, Model, Response, hasMany } from 'miragejs'
-import { HasMany, ModelInstance } from 'miragejs/-types'
+import { createServer, Model, Response, hasMany, belongsTo, ActiveModelSerializer, Serializer } from 'miragejs'
+import { BelongsTo, HasMany, ModelInstance } from 'miragejs/-types'
+import { SerializerInterface } from 'miragejs/serializer'
 
 type User = ModelInstance & {
   name: string;
@@ -11,11 +12,12 @@ type User = ModelInstance & {
 type Video = ModelInstance & {
   url: string;
   title: string;
+  playlist: BelongsTo<'playlist'>;
 }
 
 type Playlist = ModelInstance & {
   name: string;
-  videos?: HasMany<string>
+  videos?: HasMany<'videos'>
 }
 
 type VideoFeedback = ModelInstance & {
@@ -26,22 +28,32 @@ type VideoFeedback = ModelInstance & {
 const mockModels = {
   user: Model.extend<Partial<User>>({}),
   playlist: Model.extend<Partial<Playlist>>({
-    videos: hasMany('video')
+    videos: hasMany()
   }),
-  video: Model.extend<Partial<Video>>({}),
+  video: Model.extend<Partial<Video>>({
+    playlist: belongsTo()
+  }),
   videoFeedback: Model.extend<Partial<VideoFeedback>>({}),
 } 
 
 const mockFactories = {
 }
 
+const ApplicationSerializer: SerializerInterface = ActiveModelSerializer.extend({
+  root: false,
+  embed: false
+})
+
 export function makeServer() {
   const server = createServer<typeof mockModels, typeof mockFactories>({
     serializers: {
-      application: ActiveModelSerializer,
-      playlist: ActiveModelSerializer.extend({
+      application: ApplicationSerializer,
+      playlist: ApplicationSerializer.extend({
         embed: true,
-        include: ['videos']
+        include: ['videos'],
+      }),
+      video: ApplicationSerializer.extend({
+        embed: false,
       })
     },
     models: mockModels,
@@ -112,25 +124,37 @@ export function makeServer() {
       this.namespace = '/api'
 
       this.post('/signin',(schema, request) => {
-        const body = JSON.parse(request.requestBody)
+        try {
+          const body = JSON.parse(request.requestBody)
 
-        const { email, password } = body
-
-        const user = schema.findBy("user", { email, password })
-
-        if(!user){
-          return new Response(401, {}, "Invalid credentials.")
+          const { email, password } = body
+  
+          const user = schema.findBy("user", { email, password })
+  
+          if(!user){
+            return new Response(401, {}, "Invalid credentials.")
+          }
+  
+          const { password: passwordRemoved, ...userResponse } = user
+  
+          return new Response(200, {}, { user: userResponse, token: "token-test" })
         }
-
-        const { password: passwordRemoved, ...userResponse } = user
-
-        return new Response(200, {}, { user: userResponse, token: "token-test" })
+        catch(err){
+          console.log(err)
+          return new Response(500, {}, '(Mirage) Internal Server Error')
+        }
       })
 
       this.get('/playlists', function(schema){
-        const playlists = this.serialize(schema.all('playlist')).playlists
+        try {
+          const playlists = this.serialize(schema.all('playlist')).playlists
 
-        return new Response(200, {}, playlists)
+          return new Response(200, {}, playlists)
+        }
+        catch(err){
+          console.log(err)
+          return new Response(500, {}, '(Mirage) Internal Server Error')
+        }
       })
     }
   })

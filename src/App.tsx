@@ -6,6 +6,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from 'react-redux'
 import { NativeBaseProvider } from "native-base";
 import { PersistGate } from 'redux-persist/integration/react';
+import { RootSiblingParent } from 'react-native-root-siblings';
+import { ToastContainer } from 'react-native-root-toast'
 
 import { Routes } from "./routes";
 import { store, persistor } from './redux'
@@ -15,6 +17,7 @@ import { theme } from './styles/theme'
 if(process.env.NODE_ENV === 'development') {
   if((window as any).server) {
     (window as any).server.shutdown();
+    (window as any).server = undefined;
   }
   (window as any).server = makeServer()
 }
@@ -22,14 +25,16 @@ if(process.env.NODE_ENV === 'development') {
 const App: React.FC = () => {
   return (
     <NavigationContainer>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <NativeBaseProvider theme={theme}>
-            <StatusBar style='light' backgroundColor="#171717" translucent={false} />
-            <Routes />
-          </NativeBaseProvider>
-        </PersistGate>
-      </Provider>
+      <RootSiblingParent>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <NativeBaseProvider theme={theme}>
+              <StatusBar style='light' backgroundColor="#171717" translucent={false} />
+              <Routes />
+            </NativeBaseProvider>
+          </PersistGate>
+        </Provider>
+      </RootSiblingParent>
     </NavigationContainer>
   )
 }

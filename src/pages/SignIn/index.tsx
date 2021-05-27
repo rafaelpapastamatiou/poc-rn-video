@@ -31,9 +31,7 @@ export function SignIn() {
 
   const handleSignIn = useCallback<SubmitHandler<SignInFormData>>(
     async ({ email, password }) => {
-      const response = await dispatch(signIn({ email, password }))
-
-      console.log(response)
+      await dispatch(signIn({ email, password }))
     }, 
     [dispatch]
   )
