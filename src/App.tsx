@@ -7,7 +7,7 @@ import { Provider } from 'react-redux'
 import { NativeBaseProvider } from "native-base";
 import { PersistGate } from 'redux-persist/integration/react';
 import { RootSiblingParent } from 'react-native-root-siblings';
-import { ToastContainer } from 'react-native-root-toast'
+import { SSRProvider } from '@react-aria/ssr'
 
 import { Routes } from "./routes";
 import { store, persistor } from './redux'
@@ -24,18 +24,20 @@ if(process.env.NODE_ENV === 'development') {
 
 const App: React.FC = () => {
   return (
-    <NavigationContainer>
-      <RootSiblingParent>
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <NativeBaseProvider theme={theme}>
-              <StatusBar style='light' backgroundColor="#171717" translucent={false} />
-              <Routes />
-            </NativeBaseProvider>
-          </PersistGate>
-        </Provider>
-      </RootSiblingParent>
-    </NavigationContainer>
+    <SSRProvider>
+      <NavigationContainer>
+        <RootSiblingParent>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <NativeBaseProvider theme={theme}>
+                <StatusBar style='light' backgroundColor="#171717" translucent={false} />
+                <Routes />
+              </NativeBaseProvider>
+            </PersistGate>
+          </Provider>
+        </RootSiblingParent>
+      </NavigationContainer>   
+    </SSRProvider>
   )
 }
 

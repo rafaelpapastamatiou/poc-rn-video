@@ -18,19 +18,23 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rafaelpapastamatiou.pocvideo"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.rafaelpapastamatiou.pocvideo"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "build": {
         "babel": {
-          "include": ["@codler/react-native-keyboard-aware-scroll-view"]
+          "include": [
+            "@codler/react-native-keyboard-aware-scroll-view"
+          ]
         }
       }
     }

@@ -11,13 +11,6 @@ export const theme = extendTheme({
     },
   },
   components: {
-    Center: {
-      baseStyle: (props: any) => {
-        return {
-          bg: themeTools.mode('white', 'trueGray.900')(props)
-        }
-      }
-    },
     Input: {
       baseStyle: (props: any) => {
         return {

@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons'
 import { Input } from '../../components/Input';
 import { useAppDispatch } from '../../hooks/redux';
 import { signIn } from './slice'
+import { Content } from '../../components/Content';
 
 type SignInFormData = {
   email: string;
@@ -32,13 +33,12 @@ export function SignIn() {
   const handleSignIn = useCallback<SubmitHandler<SignInFormData>>(
     async ({ email, password }) => {
       await dispatch(signIn({ email, password }))
-      reset()
     }, 
     [dispatch]
   )
 
   return (
-    <Center flex={1}>
+    <Content>
       <Flex width='100%' px='8' direction='column' alignItems='center' >
         <VStack space='md'>
           <Input
@@ -77,7 +77,7 @@ export function SignIn() {
           mt='8' 
           variant='solid' 
           onPress={handleSubmit(handleSignIn)}
-          //isLoading={isSubmitting}
+          isLoading={isSubmitting}
         >
           <Text>
             ENTRAR
@@ -85,6 +85,6 @@ export function SignIn() {
         </Button>
         <Text textAlign='center' mt='4' fontSize='sm'>ESQUECI MINHA SENHA</Text>
       </Flex>
-    </Center>
+    </Content>
   );
 }

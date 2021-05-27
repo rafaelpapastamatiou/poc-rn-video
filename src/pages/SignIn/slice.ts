@@ -1,8 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { api } from '../../services/api';
 
 type User = {
+  id: number;
   name: string;
   email: string;
 }
@@ -34,12 +36,25 @@ export const signIn = createAsyncThunk<any, SignInData, {}>(
         return rejectWithValue(response.data)
       }
 
+      await AsyncStorage.setItem('auth', JSON.stringify(response.data))
+
+      api.defaults.headers.authorization = response.data.token;
+      // Para teste
+      api.defaults.headers.user = response.data.user.id
+
       return response.data
     }
     catch(err) {
       console.log(err)
       return rejectWithValue(err.message ? err.message : err)
     }
+})
+
+export const signOut = createAsyncThunk<any, undefined, {}>(
+  'auth/signOut', 
+  async () => {
+    await AsyncStorage.removeItem('auth')
+    return true;
 })
 
 const initialState: InitialState = {
@@ -52,7 +67,11 @@ const initialState: InitialState = {
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    signOut(state) {
+      state.user = undefined;
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(
       signIn.pending, 
@@ -76,6 +95,12 @@ export const authSlice = createSlice({
         state.isFetching = false;
         state.isError = true;
         state.error = error.message;
+      }
+    ),
+    builder.addCase(
+      signOut.fulfilled,
+      (state) => {
+        state.user = undefined;
       }
     )
   }

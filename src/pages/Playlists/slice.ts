@@ -27,8 +27,6 @@ export const getPlaylists = createAsyncThunk<any, undefined, {}>(
     try {
       const response = await api.get<Playlist[]>('/playlists')
 
-      console.log(response)
-
       if(response.status !== 200) {
         return rejectWithValue(response.data)
       }

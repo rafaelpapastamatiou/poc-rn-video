@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/core';
 
 import { getPlaylists, Video as VideoType } from './slice'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { Content } from '../../components/Content';
 
 export function Playlist() {
   const navigation = useNavigation()
@@ -25,7 +26,7 @@ export function Playlist() {
   }, [navigation])
 
   return (
-    <Center flex={1}>
+    <Content>
       {isFetching 
       ? (
         <Spinner />
@@ -69,6 +70,6 @@ export function Playlist() {
           ))}
         </Accordion>
       )}
-    </Center>
+    </Content>
   )
 }

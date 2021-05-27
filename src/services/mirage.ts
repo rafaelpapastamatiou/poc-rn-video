@@ -1,4 +1,4 @@
-import { createServer, Model, Response, hasMany, ActiveModelSerializer } from 'miragejs'
+import { createServer, Model, Response, hasMany, ActiveModelSerializer, belongsTo } from 'miragejs'
 import { BelongsTo, HasMany, ModelInstance } from 'miragejs/-types'
 import { SerializerInterface } from 'miragejs/serializer'
 
@@ -7,11 +7,13 @@ type User = ModelInstance & {
   email: string;
   password: string;
   created_at: string;
+  videoFeedbacks: HasMany<'videoFeedback'>;
 }
 
 type Video = ModelInstance & {
   url: string;
   title: string;
+  videoFeedbacks: HasMany<'videoFeedback'>;
 }
 
 type Playlist = ModelInstance & {
@@ -23,15 +25,26 @@ type Playlist = ModelInstance & {
 type VideoFeedback = ModelInstance & {
   rate: number;
   comment: string;
+  video: BelongsTo<'video'>;
+  user: BelongsTo<'user'>;
+  userId: number;
+  videoId: number;
 }
 
 const mockModels = {
-  user: Model.extend<Partial<User>>({}),
+  user: Model.extend<Partial<User>>({
+    videoFeedbacks: hasMany('videoFeedback')
+  }),
   playlist: Model.extend<Partial<Playlist>>({
     videos: hasMany('video')
   }),
-  video: Model.extend<Partial<Video>>({}),
-  videoFeedback: Model.extend<Partial<VideoFeedback>>({}),
+  video: Model.extend<Partial<Video>>({
+    videoFeedbacks: hasMany('videoFeedback')
+  }),
+  videoFeedback: Model.extend<Partial<VideoFeedback>>({
+    video: belongsTo('video'),
+    user: belongsTo('user')
+  }),
 } 
 
 const mockFactories = {
@@ -48,7 +61,7 @@ export function makeServer() {
     },
     models: mockModels,
     seeds(server) {
-      server.create("user", { 
+      const user = server.create("user", { 
         name: 'Teste User', 
         email: "teste@email.com", 
         password: "123456", 
@@ -56,41 +69,41 @@ export function makeServer() {
       });
 
       const video1 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=HmZKgaHa3Fg",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 1'
       });
       const video2 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=DQuhA5ZCV9M",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 2'
       });
       const video3 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=KiV03Sjj0Ng",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 3'
       });
 
       const video4 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=672TY8K2PKk",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 4'
       });
       const video5 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=lRTtMcx6rSM",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 5'
       });
       const video6 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=s9X0_Vb-4zc",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 6'
       });
 
       const video7 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=672TY8K2PKk",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 7'
       });
       const video8 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=lRTtMcx6rSM",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 8'
       });
       const video9 = server.create("video", {
-        url: "https://www.youtube.com/watch?v=s9X0_Vb-4zc",
+        url: "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
         title: 'Video 9'
       });
 
@@ -105,6 +118,13 @@ export function makeServer() {
       server.create('playlist', {
         name: "Playlist 03",
         videos: [video7, video8, video9]
+      })
+
+      server.create("videoFeedback", {
+        rate: 3,
+        comment: 'Test',
+        user,
+        video: video1
       })
     },
     routes() {
@@ -124,7 +144,7 @@ export function makeServer() {
           return new Response(401, {}, "Invalid credentials.")
         }
 
-        const userSerialized = this.serialize(user)
+        const userSerialized = this.serialize(user).user
 
         const { password: passwordRemoved, ...userResponse } = userSerialized
 
@@ -135,7 +155,65 @@ export function makeServer() {
         const playlists = this.serialize(schema.all('playlist')).playlists || []
 
         return new Response(200, {}, playlists)
-      })      
+      })
+
+      this.get('/videos/:id/feedback', function(schema, request){
+        const headers = request.requestHeaders
+        const params = request.params
+
+        if(!headers.user) {
+          return new Response(400, {}, "User header not found.")
+        }
+
+        const videoFeedback = schema.findBy("videoFeedback", { 
+          userId: Number(headers.user), 
+          videoId: Number(params.id)  
+        })
+
+        if(!videoFeedback){
+          return new Response(204)
+        }
+
+        return new Response(200, {}, this.serialize(videoFeedback).video_feedback)
+      })
+
+      this.put('/videos/:id/feedback', function(schema, request){
+        const params = request.params
+        const headers = request.requestHeaders
+        const body = JSON.parse(request.requestBody)
+
+        if(!headers.user) {
+          return new Response(400, {}, "User header not found.")
+        }
+
+        const feedbackAlreadyExists = schema.findBy("videoFeedback", { 
+          userId: Number(headers.user), 
+          videoId: Number(params.id)  
+        })
+
+        if(feedbackAlreadyExists){
+          feedbackAlreadyExists.update({
+            rate: Number(body.rate),
+            comment: body.comment,
+          })
+
+
+          return new Response(200, {},  this.serialize(feedbackAlreadyExists).video_feedback)
+        }
+        else {
+          const videoFeedback = schema.create('videoFeedback', {
+            userId: Number(headers.user),
+            videoId: Number(params.id),
+            rate: Number(body.rate),
+            comment: body.comment 
+          })
+
+          return new Response(200, {}, videoFeedback)
+        }
+      })
+
+      this.namespace = ''
+      this.passthrough()
     }
   })
 
