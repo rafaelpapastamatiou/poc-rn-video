@@ -46,5 +46,21 @@ export const theme = extendTheme({
         }
       }
     },
+    Accordion: {
+      baseStyle: (props: any) => {
+        return {
+          borderWidth: 0
+        }
+      }
+    },
+    AccordionSummary: {
+      baseStyle: (props: any) => {
+        return {
+          _expanded: {
+            bg: 'brand.900'
+          }
+        }
+      }
+    }
   },
 })

@@ -89,8 +89,8 @@ export function Player(){
         onEnd={handleSetVideoFinished}
       />
       <Fab
-        icon={<Icon as={<Ionicons name='star' />} color='yellow.300' />}
-        backgroundColor='brand.900'
+        icon={<Icon as={<Ionicons name='star' />} color='brand.900' />}
+        backgroundColor='trueGray.800'
         onPress={(event) => {
           event.persist()
           handleToggleRateModal()

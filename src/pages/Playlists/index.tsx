@@ -29,7 +29,7 @@ export function Playlist() {
     <Content>
       {isFetching 
       ? (
-        <Spinner />
+        <Spinner color='brand.900'/>
       )
       : (
         <Accordion index={[0]} flex={1} width='100%' borderRadius='0'>
