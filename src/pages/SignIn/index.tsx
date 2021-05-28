@@ -70,6 +70,7 @@ export function SignIn() {
               },
               defaultValue: ""
             }}
+            onSubmitEditing={handleSubmit(handleSignIn)}
           />
         </VStack>
         <Button 
