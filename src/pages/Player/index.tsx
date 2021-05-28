@@ -60,10 +60,10 @@ export function Player(){
 
   const handleToggleRateModal = useCallback(() => {
     setShowRateModal(state => !state)
-    if(!finished){
+    if(playing){
       setPlaying(state => !state)
     }
-  }, [finished])
+  }, [playing])
 
   const handleSubmitRate = useCallback<SubmitHandler<VideoRateFormData>>(
     async ({ comment }) => {
